@@ -89,7 +89,7 @@ export function exec(file: string, args?: Array<string> | null, options?: ExecFi
   return new Promise<string>((resolve, reject) => {
     execFile(file, args, {
     ...options,
-    maxBuffer: 10 * 1024 * 1024,
+    maxBuffer: 1000 * 1024 * 1024,
     env: getProcessEnv(options == null ? null : options.env),
   }, (error, stdout, stderr) => {
       if (error == null) {
@@ -191,7 +191,7 @@ export function spawnAndWrite(command: string, args: Array<string>, data: string
       }
     })
 
-    childProcess.stdin.end(data)
+    childProcess.stdin!!.end(data)
   })
 }
 

@@ -1,8 +1,8 @@
 import { path7za } from "7zip-bin"
 import BluebirdPromise from "bluebird-lst"
-import { Arch, asArray, AsyncTaskManager, getPlatformIconFileName, InvalidConfigurationError, log, spawnAndWrite, use, exec } from "builder-util"
+import { executeAppBuilder, Arch, asArray, AsyncTaskManager, getPlatformIconFileName, InvalidConfigurationError, log, spawnAndWrite, use, exec } from "builder-util"
 import { PackageFileInfo, UUID, CURRENT_APP_PACKAGE_FILE_NAME, CURRENT_APP_INSTALLER_FILE_NAME } from "builder-util-runtime"
-import { getBinFromGithub } from "../../binDownload"
+import { getBinFromUrl } from "../../binDownload"
 import { statOrNull, walk } from "builder-util/out/fs"
 import { hashFile } from "../../util/hash"
 import _debug from "debug"
@@ -30,7 +30,7 @@ const debug = _debug("electron-builder:nsis")
 const ELECTRON_BUILDER_NS_UUID = UUID.parse("50e065bc-3134-11e6-9bab-38c9862bdaf3")
 
 // noinspection SpellCheckingInspection
-const nsisResourcePathPromise = new Lazy(() => getBinFromGithub("nsis-resources", "3.3.0", "4okc98BD0v9xDcSjhPVhAkBMqos+FvD/5/H72fTTIwoHTuWd2WdD7r+1j72hxd+ZXxq1y3FRW0x6Z3jR0VfpMw=="))
+const nsisResourcePathPromise = new Lazy(() => getBinFromUrl("nsis-resources", "3.3.0", "4okc98BD0v9xDcSjhPVhAkBMqos+FvD/5/H72fTTIwoHTuWd2WdD7r+1j72hxd+ZXxq1y3FRW0x6Z3jR0VfpMw=="))
 
 const USE_NSIS_BUILT_IN_COMPRESSOR = false
 
@@ -227,7 +227,9 @@ export class NsisTarget extends Target {
 
     this.configureDefinesForAllTypeOfInstaller(defines)
     if (isPortable) {
-      defines.REQUEST_EXECUTION_LEVEL = (options as PortableOptions).requestExecutionLevel || "user"
+      const portableOptions = options as PortableOptions
+      defines.REQUEST_EXECUTION_LEVEL = portableOptions.requestExecutionLevel || "user"
+      defines.UNPACK_DIR_NAME = portableOptions.unpackDirName || (await executeAppBuilder(["ksuid"]))
     }
     else {
       await this.configureDefines(oneClick, defines)
